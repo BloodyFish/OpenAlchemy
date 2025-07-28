@@ -1,4 +1,4 @@
-# infinite-craft-gemini
+# Open Alchemy 🧪
 This is an open-source project inspired by the game _Infinite Craft_ using Google's Gemini API.\
 It is programmed in Python and uses the [NiceGUI](https://nicegui.io/) Python Library for the UI.
 
