@@ -35,4 +35,4 @@ Right now, the system prompt (found in the `recipe.py` file) is as follows:
 You can edit this if you like!
 
 ## Showcase
-[![SHOWCASE_VIDEO](https://img.youtube.com/vi/K45yoS99AYQ/0.jpg)](https://youtu.be/K45yoS99AYQ?si=3cyhoWllvxRIn7lz)
+[![SHOWCASE_VIDEO](https://img.youtube.com/vi/1nIRfCMAF9U/0.jpg)](https://www.youtube.com/watch?v=1nIRfCMAF9U)
