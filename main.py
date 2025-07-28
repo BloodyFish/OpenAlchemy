@@ -18,6 +18,26 @@ dna = Material(name="DNA", emoji="🧬")
 discovered_materials = [water, fire, earth, air, dna]
 material_list = []
 
+script_dir = os.path.dirname(__file__)
+filename = "recipies.json"
+
+with open(os.path.join(script_dir, filename), 'r') as file:
+    data = json.load(file)
+    recipies = [Recipe(r["material_list"], Material(**r["output"])) for r in data]
+
+# Init discovered materials
+for recipie in recipies:
+    if recipie.output not in discovered_materials:
+        discovered_materials.append(recipie.output)
+
+def clearRecipies(ui_list, crafting_area):
+    recipe.clearRecipies()
+    discovered_materials.clear()
+    discovered_materials.extend([water, fire, earth, air, dna])
+    updateDiscoveredMaterialsList(ui_list, crafting_area)
+    material_list.clear
+    crafting_area.clear()
+
 def updateDiscoveredMaterialsList(ui_list, crafting_area):
     ui_list.clear()
     for material in discovered_materials:
@@ -63,31 +83,23 @@ async def craft(materials):
         ui.notify("You haven't discovered some of these materials", type= 'warning')
         return
 
-    with open(os.path.join(script_dir, filename), 'r') as file:
-        data = json.load(file)
-        recipies = [Recipe(r["material_list"], Material(**r["output"])) for r in data]
 
-
-        foundRecipe = False
-        for m_recipe in recipies:
-            if materials[0] in m_recipe.material_list and materials[1] in m_recipe.material_list:
-                if(m_recipe.output not in discovered_materials):
-                    discovered_materials.append(m_recipe.output)
-                    ui.notify(f"Added {m_recipe.output.emoji} {m_recipe.output.name} to discovered materials!")
-                foundRecipe = True
-                break
+    foundRecipe = False
+    for m_recipe in recipies:
+        if materials[0] in m_recipe.material_list and materials[1] in m_recipe.material_list:
+            if(m_recipe.output not in discovered_materials):
+                discovered_materials.append(m_recipe.output)
+                ui.notify(f"Added {m_recipe.output.emoji} {m_recipe.output.name} to discovered materials!")
+            foundRecipe = True
+            break
             
-        if foundRecipe == False:
-            new_material = recipe.createRecipe(materials[0], materials[1])
-            ui.notify("Discovered new recipe!", type= 'positive')
-            if(new_material not in discovered_materials):
-                discovered_materials.append(new_material)
-                ui.notify(f"Added {new_material.emoji} {new_material.name} to discovered materials!")
+    if foundRecipe == False:
+        new_material = recipe.createRecipe(materials[0], materials[1])
+        ui.notify("Discovered new recipe!", type= 'positive')
+        if(new_material not in discovered_materials):
+            discovered_materials.append(new_material)
+            ui.notify(f"Added {new_material.emoji} {new_material.name} to discovered materials!")
 
-
-
-script_dir = os.path.dirname(__file__)
-filename = "recipies.json"
 
 with ui.row():
     with ui.column():
@@ -99,7 +111,10 @@ with ui.row():
 
             craft_button = ui.button('Craft')
 
-    discoveredMaterials_list = ui.list().classes('bg-blue-100 rounded-lg shadow-md')
+    with ui.column():
+        discoveredMaterials_list = ui.list().classes('bg-blue-100 rounded-lg shadow-md')
+        reset_button = ui.button('Reset', on_click= lambda: clearRecipies(discoveredMaterials_list, crafting_area))
+        
     updateDiscoveredMaterialsList(discoveredMaterials_list, crafting_area)
 
     @craft_button.on_click
@@ -111,5 +126,8 @@ with ui.row():
             materials.append(material.name.strip().upper())
 
         await onCraftButtonClick(materials, spinner, discoveredMaterials_list,crafting_area)
+        material_list.clear()
+        crafting_area.clear()
+    
   
 ui.run()
