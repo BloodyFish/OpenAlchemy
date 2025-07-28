@@ -45,7 +45,7 @@ def createRecipe(material_one, material_two):
     material_json = json.loads(response.text)
 
     script_dir = os.path.dirname(__file__)
-    filename = "recipies.json"
+    filename = "recipes.json"
 
     with open(os.path.join(script_dir, filename), 'r') as file:
         data = json.load(file)
@@ -57,9 +57,9 @@ def createRecipe(material_one, material_two):
     output_material = Material(**material_json["output"])
     return Recipe(material_json["material_list"], output_material).output
 
-def clearRecipies():
+def clearRecipes():
     script_dir = os.path.dirname(__file__)
-    filename = "recipies.json"
+    filename = "recipes.json"
 
     with open(os.path.join(script_dir, filename), 'w') as file:
         json.dump([], file)

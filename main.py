@@ -19,38 +19,39 @@ discovered_materials = [water, fire, earth, air, dna]
 material_list = []
 
 script_dir = os.path.dirname(__file__)
-filename = "recipies.json"
+filename = "recipes.json"
 
-with open(os.path.join(script_dir, filename), 'r') as file:
-    data = json.load(file)
-    recipies = [Recipe(r["material_list"], Material(**r["output"])) for r in data]
+def initDiscoveredMaterials():
+    with open(os.path.join(script_dir, filename), 'r') as file:
+        data = json.load(file)
+        recipes = [Recipe(r["material_list"], Material(**r["output"])) for r in data]
 
-# Init discovered materials
-for recipie in recipies:
-    if recipie.output not in discovered_materials:
-        discovered_materials.append(recipie.output)
+    # Init discovered materials
+    for recipe in recipes:
+        if recipe.output not in discovered_materials:
+            discovered_materials.append(recipe.output)
 
-def clearRecipies(ui_list, crafting_area):
-    recipe.clearRecipies()
+def clearRecipes(ui_list, crafting_area):
+    recipe.clearRecipes()
     discovered_materials.clear()
     discovered_materials.extend([water, fire, earth, air, dna])
     updateDiscoveredMaterialsList(ui_list, crafting_area)
-    material_list.clear
+    material_list.clear()
     crafting_area.clear()
 
 def updateDiscoveredMaterialsList(ui_list, crafting_area):
     ui_list.clear()
     for material in discovered_materials:
         with ui_list:
-            with ui.item(on_click=lambda m=material: addToCrafingArea(m, crafting_area)):
+            with ui.item(on_click=lambda m=material: addToCraftingArea(m, crafting_area)):
                 with ui.item_section():
                     ui.item_label(f"{material.emoji} {material.name}")
 
-def removeFromCrafingArea(material, crafting_area, item):
+def removeFromCraftingArea(material, crafting_area, item):
     material_list.remove(material)
     crafting_area.remove(item)
 
-def addToCrafingArea(material, crafting_area):
+def addToCraftingArea(material, crafting_area):
     if len(material_list) < 2:
         material_list.append(material)
 
@@ -58,7 +59,7 @@ def addToCrafingArea(material, crafting_area):
 
         with crafting_area:
             item = ui.item()
-            item.on_click(lambda: removeFromCrafingArea(material, crafting_area, item))
+            item.on_click(lambda: removeFromCraftingArea(material, crafting_area, item))
             with item:
                 with ui.item_section():
                     ui.item_label(f"{material.emoji} {material.name}")
@@ -76,58 +77,63 @@ async def craft(materials):
         ui.notify("You need two materiuals to craft something!", type= 'warning')
         return
     
-    input1_found = any(material.name == materials[0] for material in discovered_materials)
-    input2_found = any(material.name == materials[1] for material in discovered_materials)
+    with open(os.path.join(script_dir, filename), 'r') as file:
+        data = json.load(file)
+        recipes = [Recipe(r["material_list"], Material(**r["output"])) for r in data]
 
-    if input1_found is False or input2_found is False:
-        ui.notify("You haven't discovered some of these materials", type= 'warning')
-        return
-
-
-    foundRecipe = False
-    for m_recipe in recipies:
+    for m_recipe in recipes:
         if materials[0] in m_recipe.material_list and materials[1] in m_recipe.material_list:
-            if(m_recipe.output not in discovered_materials):
-                discovered_materials.append(m_recipe.output)
-                ui.notify(f"Added {m_recipe.output.emoji} {m_recipe.output.name} to discovered materials!")
-            foundRecipe = True
-            break
+            ui.notify(f"You already discovered {m_recipe.output.emoji} {m_recipe.output.name}!", type= 'warning')
+            return
             
-    if foundRecipe == False:
-        new_material = recipe.createRecipe(materials[0], materials[1])
-        ui.notify("Discovered new recipe!", type= 'positive')
-        if(new_material not in discovered_materials):
-            discovered_materials.append(new_material)
-            ui.notify(f"Added {new_material.emoji} {new_material.name} to discovered materials!")
+
+    new_material = recipe.createRecipe(materials[0], materials[1])
+    discovered_materials.append(new_material)
+
+    ui.notify("Discovered new recipe!", type= 'positive')
+    ui.notify(f"Added {new_material.emoji} {new_material.name} to discovered materials!")
 
 
-with ui.row():
-    with ui.column():
-        crafting_area = ui.list().classes('bg-blue-100 rounded-lg shadow-md')
+initDiscoveredMaterials()
+ui.query('body').style('font-family: monospace;')
+
+ui.header().classes('bg-transparent')
+with ui.column().classes('w-full items-center'):
+    ui.label("Open Source Alchemy 🧪").style('color: black; font-size: 200%').classes('justify-center ')
+
+
+with ui.row().classes('justify-center w-full'):
+    with ui.column().classes():
+        crafting_area = ui.list().classes('bg-neutral-100 rounded-lg shadow-md')
 
         with ui.row():
             spinner = ui.spinner(size='lg')
             spinner.set_visibility(visible=False)
 
-            craft_button = ui.button('Craft')
+            craft_button = ui.button('🛠️', color= 'transparent').props('round').style('font-size: 150%')
+            craft_button.tooltip('Craft')
 
-    with ui.column():
-        discoveredMaterials_list = ui.list().classes('bg-blue-100 rounded-lg shadow-md')
-        reset_button = ui.button('Reset', on_click= lambda: clearRecipies(discoveredMaterials_list, crafting_area))
+    with ui.column().classes('items-center'):
+        discoveredMaterials_list = ui.scroll_area().classes('bg-neutral-100 rounded-lg shadow-md max-h-96 min-w-[200px]')
+        with ui.row():
+            reset_button = ui.button('Reset 🔄️', color='transparent', on_click=lambda: clearRecipes(discoveredMaterials_list, crafting_area))
+            reset_button.style('font-size: 115%').classes('rounded-lg')
+            reset_button.tooltip('Reset discovered materials')
         
-    updateDiscoveredMaterialsList(discoveredMaterials_list, crafting_area)
+        
+updateDiscoveredMaterialsList(discoveredMaterials_list, crafting_area)
 
-    @craft_button.on_click
-    async def craft_button_click():
+@craft_button.on_click
+async def craft_button_click():
 
-        materials = []
+    materials = []
 
-        for material in material_list:
-            materials.append(material.name.strip().upper())
+    for material in material_list:
+        materials.append(material.name.strip().upper())
 
-        await onCraftButtonClick(materials, spinner, discoveredMaterials_list,crafting_area)
-        material_list.clear()
-        crafting_area.clear()
+    await onCraftButtonClick(materials, spinner, discoveredMaterials_list,crafting_area)
+    material_list.clear()
+    crafting_area.clear()
     
   
 ui.run()
