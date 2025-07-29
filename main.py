@@ -43,7 +43,9 @@ def updateDiscoveredMaterialsList(ui_list, crafting_area):
     ui_list.clear()
     for material in discovered_materials:
         with ui_list:
-            with ui.item(on_click=lambda m=material: addToCraftingArea(m, crafting_area)):
+            item = ui.item().classes('bg-white rounded-lg shadow-md')
+            item.on_click(lambda m=material: addToCraftingArea(m, crafting_area))
+            with item:
                 with ui.item_section():
                     ui.item_label(f"{material.emoji} {material.name}")
 
@@ -58,7 +60,7 @@ def addToCraftingArea(material, crafting_area):
         ui.notify(f"Added {material.emoji} {material.name} to the crafting area!")
 
         with crafting_area:
-            item = ui.item()
+            item = ui.item().classes('bg-white rounded-lg shadow-md')
             item.on_click(lambda: removeFromCraftingArea(material, crafting_area, item))
             with item:
                 with ui.item_section():
@@ -103,8 +105,8 @@ with ui.column().classes('w-full items-center'):
 
 
 with ui.row().classes('justify-center w-full'):
-    with ui.column().classes():
-        crafting_area = ui.list().classes('bg-neutral-100 rounded-lg shadow-md')
+    with ui.column():
+        crafting_area = ui.column().classes('bg-neutral-100 rounded-lg shadow-md min-w-[120px] min-h-[120px] items-center p-3')
 
         with ui.row():
             spinner = ui.spinner(size='lg')
